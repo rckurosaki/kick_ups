@@ -8,13 +8,15 @@ enum GameMode {
 
 const SCREEN_WIDTH: i32 = 80;
 const SCREEN_HEIGHT: i32 = 50;
-const FRAME_DURATION: f32 = 60.0;
-const BALL_RADIUS: i32 = 1;
+const FRAME_DURATION: f32 = 100.0;
+const BALL_RADIUS: i32 = 2;
 
 struct Ball {
     x: f32,
     y: f32,
     velocity: f32,
+    x_velocity: f32,
+    x_direction: f32,
 }
 
 impl Ball {
@@ -23,7 +25,14 @@ impl Ball {
             x,
             y,
             velocity: 0.0,
+            x_velocity: 0.0,
+            x_direction: 1.0,
         }
+    }
+
+    // Return true if both x_direction and x_velocity have the same direction
+    fn check_velocity_and_direction(&mut self) -> bool {
+        self.x_direction * self.x_velocity > 0.0 
     }
 
     fn render(&mut self, ctx: &mut BTerm) {
@@ -40,15 +49,30 @@ impl Ball {
         if self.velocity < 2.0 {
             self.velocity += 0.2;
         }
+
+        if self.x_velocity != 0.0 {
+            // self.x_velocity -= 0.2 * self.x_direction;
+            if self.x_direction > 0.0 {
+                self.x_velocity -= 0.1;
+            } else if self.x_direction < 0.0 {
+                self.x_velocity += 0.1;
+            }
+        }
+
         self.y += self.velocity;
-        self.x += 0.0;
+        self.x += self.x_velocity;
         if self.y < 0.0{
             self.y = 0.0;
         }
+        if self.x_velocity == 0.0 || !self.check_velocity_and_direction(){
+            self.x_velocity = 0.0;
+        }
     }
 
-    fn kick(&mut self) {
+    fn kick(&mut self, direction: f32) {
         self.velocity = -2.0;
+        self.x_velocity = 2.0 * direction;
+        self.x_direction = direction;
     }
 }
 
@@ -85,7 +109,14 @@ impl State {
         }
 
         if ctx.left_click && self.calculate_hit_box((self.ball.x as i32, self.ball.y as i32), ctx.mouse_pos(), BALL_RADIUS){
-            self.ball.kick();
+            let direction: f32 =
+                if ctx.mouse_pos().0 > self.ball.x as i32{
+                    -1.0
+                } else {
+                    1.0
+                };
+
+            self.ball.kick(direction);
             self.score += 1;
         }
         // if ctx.left_click && ctx.mouse_pos() == (self.ball.x as i32, self.ball.y as i32) {
@@ -94,8 +125,14 @@ impl State {
         // }
         self.ball.render(ctx);
         ctx.print(0,0,"Click to kick...");
-        if self.ball.y > SCREEN_HEIGHT as f32{
-            self.mode = GameMode::End;
+        // if self.ball.y > SCREEN_HEIGHT as f32{
+        //     self.mode = GameMode::End;
+        // }
+
+        if self.ball.x as i32 + BALL_RADIUS >= SCREEN_WIDTH || self.ball.x as i32 - BALL_RADIUS <= 0 {
+            self.ball.x_direction *= -1.0;
+            self.ball.x_velocity *= -1.0;
+            self.ball.x_velocity += 0.1 * self.ball.x_direction;
         }
 
         ctx.print(0,1,&format!("Score: {}", self.score));
