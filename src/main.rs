@@ -8,7 +8,7 @@ enum GameMode {
 
 const SCREEN_WIDTH: i32 = 80;
 const SCREEN_HEIGHT: i32 = 50;
-const FRAME_DURATION: f32 = 100.0;
+const FRAME_DURATION: f32 = 60.0;
 const BALL_RADIUS: i32 = 2;
 
 struct Ball {
@@ -50,8 +50,15 @@ impl Ball {
             self.velocity += 0.2;
         }
 
+        if self.x_velocity < -2.0 {
+            self.x_velocity = -2.0;
+        }
+
+        if self.x_velocity > 2.0 {
+            self.x_velocity = 2.0;
+        }
+
         if self.x_velocity != 0.0 {
-            // self.x_velocity -= 0.2 * self.x_direction;
             if self.x_direction > 0.0 {
                 self.x_velocity -= 0.1;
             } else if self.x_direction < 0.0 {
@@ -69,9 +76,14 @@ impl Ball {
         }
     }
 
-    fn kick(&mut self, direction: f32) {
+    fn kick(&mut self, direction: f32, did_hit_center: bool) {
         self.velocity = -2.0;
-        self.x_velocity = 2.0 * direction;
+
+        if did_hit_center {
+            self.x_velocity *= direction;
+        } else {
+            self.x_velocity = 2.0 * direction;
+        }
         self.x_direction = direction;
     }
 }
@@ -116,18 +128,14 @@ impl State {
                     1.0
                 };
 
-            self.ball.kick(direction);
+            let did_hit_center = ctx.mouse_pos().0 == self.ball.x as i32;
+
+            self.ball.kick(direction, did_hit_center);
             self.score += 1;
         }
-        // if ctx.left_click && ctx.mouse_pos() == (self.ball.x as i32, self.ball.y as i32) {
-        //     self.ball.kick();
-        //     self.score += 1;
-        // }
+
         self.ball.render(ctx);
         ctx.print(0,0,"Click to kick...");
-        // if self.ball.y > SCREEN_HEIGHT as f32{
-        //     self.mode = GameMode::End;
-        // }
 
         if self.ball.x as i32 + BALL_RADIUS >= SCREEN_WIDTH || self.ball.x as i32 - BALL_RADIUS <= 0 {
             self.ball.x_direction *= -1.0;
