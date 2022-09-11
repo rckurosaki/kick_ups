@@ -2,7 +2,7 @@
 This is a simple game written in Rust. The goal is to kick the ball without letting it touch the ground.
 
 ### Inspiration
-Kick Ups is a modification from a game called **Flappy Dragon**. This game is implemented by [Herbert Wolverson](http://https://www.linkedin.com/in/herbert-wolverson-98523346 "Herbert Wolverson") in his book [Hands-on Rust](https://hands-on-rust.com/ "Hands-on Rust").
+Kick Ups is a modification from a game called **Flappy Dragon**. This game is implemented by **Herbert Wolverson** in his book [Hands-on Rust](https://hands-on-rust.com/ "Hands-on Rust").
 
 Hands-on Rust is a great way to learn the fundamentals of game development as well as Rust programming language.
 
