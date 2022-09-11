@@ -39,8 +39,8 @@ impl Ball {
         ctx.set(
             self.x as i32,
             self.y as i32,
-            YELLOW,
-            BLACK,
+            WHITE,
+            WHITESMOKE,
             to_cp437('O')
         );
     }
@@ -113,7 +113,7 @@ impl State {
     }
 
     fn play(&mut self, ctx: &mut BTerm) {
-        ctx.cls_bg(NAVY);
+        ctx.cls_bg(GREEN4);
         self.frame_time += ctx.frame_time_ms;
         if self.frame_time > FRAME_DURATION {
             self.frame_time = 0.0;
@@ -134,14 +134,22 @@ impl State {
             self.score += 1;
         }
 
+        if self.ball.x as i32 + BALL_RADIUS >= SCREEN_WIDTH {
+            self.ball.x_direction = -1.0;
+            self.ball.x_velocity += 0.2 * self.ball.x_direction;
+        }
+
+        if self.ball.x as i32 - BALL_RADIUS <= 0 {
+            self.ball.x_direction = 1.0;
+            if self.ball.x_velocity <= 0.0 {
+                self.ball.x_velocity *= -1.0;
+            }
+            
+            self.ball.x_velocity += 0.2 * self.ball.x_direction;
+        }
+
         self.ball.render(ctx);
         ctx.print(0,0,"Click to kick...");
-
-        if self.ball.x as i32 + BALL_RADIUS >= SCREEN_WIDTH || self.ball.x as i32 - BALL_RADIUS <= 0 {
-            self.ball.x_direction *= -1.0;
-            self.ball.x_velocity *= -1.0;
-            self.ball.x_velocity += 0.1 * self.ball.x_direction;
-        }
 
         ctx.print(0,1,&format!("Score: {}", self.score));
 
@@ -175,8 +183,8 @@ impl State {
 
     fn dead(&mut self, ctx: &mut BTerm) {
         ctx.cls();
-        ctx.print_centered(5, "You are dead!");
-        ctx.print_centered(6, &format!("You earned {} points!", self.score));
+        ctx.print_centered(5, "You lose!");
+        ctx.print_centered(6, &format!("You kicked {} times without dropping the ball!", self.score));
         ctx.print_centered(8, "(P) Play Game");
         ctx.print_centered(9, "(Q) Quit Game");
 
